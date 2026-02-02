@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving vs Investing Balance Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-balance-scale text-blue-600"></i>
+                Saving vs Investing Balance Game
+            </h1>
+            <p class="text-gray-600 text-lg">Learn the art of financial balance through interactive simulation</p>
+        </header>
+
+        <!-- Game Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Current Status -->
+                <div class="bg-gradient-to-r from-blue-100 to-blue-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-calendar-alt"></i> Current Status
+                    </h3>
+                    <div class="text-sm">
+                        <p>Month: <span id="currentMonth" class="font-bold">1</span> of 120</p>
+                        <p>Year: <span id="currentYear" class="font-bold">1</span> of 10</p>
+                        <p>Monthly Income: <span class="font-bold text-green-600">$3,000</span></p>
+                    </div>
+                </div>
+
+                <!-- Savings Account -->
+                <div class="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-800 mb-2">
+                        <i class="fas fa-piggy-bank"></i> Savings Account
+                    </h3>
+                    <div class="text-sm">
+                        <p>Balance: $<span id="savingsBalance" class="font-bold">0</span></p>
+                        <p>Interest Rate: <span class="font-bold">2% annually</span></p>
+                        <p class="text-green-600">✓ Stable & Safe</p>
+                    </div>
+                </div>
+
+                <!-- Investment Portfolio -->
+                <div class="bg-gradient-to-r from-purple-100 to-purple-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-purple-800 mb-2">
+                        <i class="fas fa-chart-line"></i> Investment Portfolio
+                    </h3>
+                    <div class="text-sm">
+                        <p>Balance: $<span id="investmentBalance" class="font-bold">0</span></p>
+                        <p>Avg Return: <span class="font-bold">7% annually</span></p>
+                        <p class="text-purple-600">⚡ Volatile & Growth</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allocation Controls -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <h3 class="font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-sliders-h"></i> Monthly Allocation ($3,000)
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Savings: $<span id="savingsAmount">1500</span> (<span id="savingsPercent">50</span>%)
+                        </label>
+                        <input type="range" id="savingsSlider" min="0" max="100" value="50" 
+                               class="w-full h-3 bg-green-200 rounded-lg appearance-none cursor-pointer slider">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Investment: $<span id="investmentAmount">1500</span> (<span id="investmentPercent">50</span>%)
+                        </label>
+                        <input type="range" id="investmentSlider" min="0" max="100" value="50" 
+                               class="w-full h-3 bg-purple-200 rounded-lg appearance-none cursor-pointer slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-play"></i> Start Game
+                </button>
+                <button id="pauseBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors" disabled>
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button id="resetBtn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button id="speedBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    Speed: <span id="speedText">1x</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-area"></i> Portfolio Growth Over Time
+            </h3>
+            <div class="relative" style="height: 400px;">
+                <canvas id="portfolioChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Events Log -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-history"></i> Recent Events
+            </h3>
+            <div id="eventsLog" class="space-y-2 max-h-40 overflow-y-auto">
+                <p class="text-gray-500 italic">Game events will appear here...</p>
+            </div>
+        </div>
+
+        <!-- Final Analysis (Hidden initially) -->
+        <div id="finalAnalysis" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-trophy"></i> Final Analysis
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800 mb-2">Total Savings</h4>
+                        <p class="text-2xl font-bold text-green-600">$<span id="finalSavings">0</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-800 mb-2">Total Investments</h4>
+                        <p class="text-2xl font-bold text-purple-600">$<span id="finalInvestments">0</span></p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Total Portfolio</h4>
+                        <p class="text-3xl font-bold text-blue-600">$<span id="finalTotal">0</span></p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-800 mb-3">Strategy Analysis</h4>
+                    <div id="strategyFeedback" class="text-sm space-y-2">
+                        <!-- Dynamic feedback will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+            <h3 id="eventTitle" class="text-xl font-semibold mb-4"></h3>
+            <p id="eventDescription" class="text-gray-700 mb-6"></p>
+            <div id="eventOptions" class="space-y-2">
+                <!-- Dynamic options will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SavingInvestingGame {
+            constructor() {
+                this.monthlyIncome = 3000;
+                this.currentMonth = 0;
+                this.totalMonths = 120; // 10 years
+                
+                this.savingsBalance = 0;
+                this.investmentBalance = 0;
+                this.savingsAllocation = 50; // percentage
+                this.investmentAllocation = 50; // percentage
+                
+                this.isRunning = false;
+                this.gameSpeed = 1000; // milliseconds per month
+                this.speedMultiplier = 1;
+                
+                this.monthlyData = [];
+                this.eventsHistory = [];
+                
+                this.chart = null;
+                
+                this.initializeEventHandlers();
+                this.initializeChart();
+                this.updateDisplay();
+            }
+            
+            initializeEventHandlers() {
+                // Slider controls
+                document.getElementById('savingsSlider').addEventListener('input', (e) => {
+                    this.savingsAllocation = parseInt(e.target.value);
+                    this.investmentAllocation = 100 - this.savingsAllocation;
+                    document.getElementById('investmentSlider').value = this.investmentAllocation;
+                    this.updateAllocationDisplay();
+                });
+                
+                document.getElementById('investmentSlider').addEventListener('input', (e) => {
+                    this.investmentAllocation = parseInt(e.target.value);
+                    this.savingsAllocation = 100 - this.investmentAllocation;
+                    document.getElementById('savingsSlider').value = this.savingsAllocation;
+                    this.updateAllocationDisplay();
+                });
+                
+                // Game controls
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pauseGame());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+                document.getElementById('speedBtn').addEventListener('click', () => this.changeSpeed());
+            }
+            
+            initializeChart() {
+                const ctx = document.getElementById('portfolioChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Savings',
+                                data: [],
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Investments',
+                                data: [],
+                                borderColor: 'rgb(168, 85, 247)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Total Portfolio',
+                                data: [],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.1,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            updateAllocationDisplay() {
+                const savingsAmount = (this.monthlyIncome * this.savingsAllocation / 100);
+                const investmentAmount = (this.monthlyIncome * this.investmentAllocation / 100);
+                
+                document.getElementById('savingsAmount').textContent = savingsAmount.toFixed(0);
+                document.getElementById('savingsPercent').textContent = this.savingsAllocation;
+                document.getElementById('investmentAmount').textContent = investmentAmount.toFixed(0);
+                document.getElementById('investmentPercent').textContent = this.investmentAllocation;
+            }
+            
+            updateDisplay() {
+                document.getElementById('currentMonth').textContent = this.currentMonth;
+                document.getElementById('currentYear').textContent = Math.floor(this.currentMonth / 12) + 1;
+                document.getElementById('savingsBalance').textContent = this.savingsBalance.toLocaleString();
+                document.getElementById('investmentBalance').textContent = this.investmentBalance.toLocaleString();
+                
+                this.updateAllocationDisplay();
+            }
+            
+            startGame() {
+                this.isRunning = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                
+                this.gameLoop();
+            }
+            
+            pauseGame() {
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+            }
+            
+            resetGame() {
+                this.isRunning = false;
+                this.currentMonth = 0;
+                this.savingsBalance = 0;
+                this.investmentBalance = 0;
+                this.monthlyData = [];
+                this.eventsHistory = [];
+                
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('finalAnalysis').classList.add('hidden');
+                document.getElementById('eventsLog').innerHTML = '<p class="text-gray-500 italic">Game events will appear here...</p>';
+                
+                this.chart.data.labels = [];
+                this.chart.data.datasets.forEach(dataset => dataset.data = []);
+                this.chart.update();
+                
+                this.updateDisplay();
+            }
+            
+            changeSpeed() {
+                this.speedMultiplier = this.speedMultiplier === 1 ? 2 : this.speedMultiplier === 2 ? 4 : 1;
+                this.gameSpeed = 1000 / this.speedMultiplier;
+                document.getElementById('speedText').textContent = this.speedMultiplier + 'x';
+            }
+            
+            async gameLoop() {
+                while (this.isRunning && this.currentMonth < this.totalMonths) {
+                    await this.processMonth();
+                    await this.sleep(this.gameSpeed);
+                }
+                
+                if (this.currentMonth >= this.totalMonths) {
+                    this.endGame();
+                }
+            }
+            
+            async processMonth() {
+                this.currentMonth++;
+                
+                // Monthly contributions
+                const savingsContribution = this.monthlyIncome * this.savingsAllocation / 100;
+                const investmentContribution = this.monthlyIncome * this.investmentAllocation / 100;
+                
+                this.savingsBalance += savingsContribution;
+                this.investmentBalance += investmentContribution;
+                
+                // Apply monthly returns
+                this.savingsBalance *= (1 + 0.02/12); // 2% annual = ~0.167% monthly
+                
+                // Investment returns (volatile, average 7% annually)
+                const baseReturn = 0.07/12; // 7% annual = ~0.583% monthly
+                const volatility = (Math.random() - 0.5) * 0.4; // +/- 20% volatility
+                const monthlyReturn = baseReturn + volatility * baseReturn;
+                this.investmentBalance *= (1 + monthlyReturn);
+                
+                // Random events
+                if (Math.random() < 0.08) { // 8% chance per month
+                    await this.triggerRandomEvent();
+                }
+                
+                // Record data
+                this.monthlyData.push({
+                    month: this.currentMonth,
+                    savings: Math.round(this.savingsBalance),
+                    investments: Math.round(this.investmentBalance),
+                    total: Math.round(this.savingsBalance + this.investmentBalance)
+                });
+                
+                // Update chart
+                this.updateChart();
+                this.updateDisplay();
+            }
+            
+            async triggerRandomEvent() {
+                const events = [
+                    {
+                        title: '🚗 Car Repair Emergency',
+                        description: 'Your car needs an urgent $2,000 repair. How do you handle this?',
+                        options: [
+                            { text: 'Use Emergency Savings', cost: 2000, source: 'savings' },
+                            { text: 'Sell Some Investments', cost: 2000, source: 'investments' },
+                            { text: 'Take a Loan (Extra $200 interest)', cost: 2200, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🏥 Medical Emergency',
+                        description: 'Unexpected medical bills amount to $3,000 after insurance.',
+                        options: [
+                            { text: 'Use Savings', cost: 3000, source: 'savings' },
+                            { text: 'Liquidate Investments', cost: 3000, source: 'investments' },
+                            { text: 'Payment Plan (+$500 fees)', cost: 3500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🎉 Work Bonus!',
+                        description: 'Great news! You received a $5,000 performance bonus. What do you do?',
+                        options: [
+                            { text: 'Save it all', cost: -5000, source: 'savings' },
+                            { text: 'Invest it all', cost: -5000, source: 'investments' },
+                            { text: 'Split 50/50', cost: -5000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '📈 Investment Opportunity',
+                        description: 'A friend offers you a "guaranteed" 15% return investment for $4,000.',
+                        options: [
+                            { text: 'Invest (50% chance of loss)', cost: 4000, source: 'risky' },
+                            { text: 'Decline and stick to plan', cost: 0, source: 'none' }
+                        ]
+                    }
+                ];
+                
+                const event = events[Math.floor(Math.random() * events.length)];
+                return this.showEventModal(event);
+            }
+            
+            showEventModal(event) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('eventModal');
+                    const title = document.getElementById('eventTitle');
+                    const description = document.getElementById('eventDescription');
+                    const options = document.getElementById('eventOptions');
+                    
+                    title.textContent = event.title;
+                    description.textContent = event.description;
+                    options.innerHTML = '';
+                    
+                    event.options.forEach((option, index) => {
+                        const button = document.createElement('button');
+                        button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors';
+                        button.textContent = option.text;
+                        button.onclick = () => {
+                            this.handleEventChoice(option);
+                            modal.classList.add('hidden');
+                            this.addEventLog(event.title, option.text);
+                            resolve();
+                        };
+                        options.appendChild(button);
+                    });
+                    
+                    modal.classList.remove('hidden');
+                });
+            }
+            
+            handleEventChoice(option) {
+                if (option.cost > 0) {
+                    switch (option.source) {
+                        case 'savings':
+                            this.savingsBalance = Math.max(0, this.savingsBalance - option.cost);
+                            break;
+                        case 'investments':
+                            this.investmentBalance = Math.max(0, this.investmentBalance - option.cost);
+                            break;
+                        case 'both':
+                            const totalBalance = this.savingsBalance + this.investmentBalance;
+                            if (totalBalance >= option.cost) {
+                                const savingsRatio = this.savingsBalance / totalBalance;
+                                this.savingsBalance -= option.cost * savingsRatio;
+                                this.investmentBalance -= option.cost * (1 - savingsRatio);
+                            }
+                            break;
+                        case 'risky':
+                            if (Math.random() > 0.5) {
+                                this.investmentBalance += option.cost * 0.15; // 15% gain
+                            } else {
+                                this.investmentBalance = Math.max(0, this.investmentBalance - option.cost); // Total loss
+                            }
+                            break;
+                    }
+                } else if (option.cost < 0) {
+                    const bonus = Math.abs(option.cost);
+                    switch (option.source) {
+                        case 'savings':
+                            this.savingsBalance += bonus;
+                            break;
+                        case 'investments':
+                            this.investmentBalance += bonus;
+                            break;
+                        case 'both':
+                            this.savingsBalance += bonus / 2;
+                            this.investmentBalance += bonus / 2;
+                            break;
+                    }
+                }
+            }
+            
+            addEventLog(eventTitle, choice) {
+                const log = document.getElementById('eventsLog');
+                const eventEntry = document.createElement('div');
+                eventEntry.className = 'bg-gray-100 p-2 rounded text-sm';
+                eventEntry.innerHTML = `
+                    <strong>Month ${this.currentMonth}:</strong> ${eventTitle}<br>
+                    <span class="text-gray-600">Choice: ${choice}</span>
+                `;
+                
+                if (log.children.length === 1 && log.children[0].classList.contains('italic')) {
+                    log.innerHTML = '';
+                }
+                
+                log.insertBefore(eventEntry, log.firstChild);
+                
+                // Keep only last 5 events
+                while (log.children.length > 5) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+            
+            updateChart() {
+                const labels = this.monthlyData.map(d => `Month ${d.month}`);
+                const savingsData = this.monthlyData.map(d => d.savings);
+                const investmentsData = this.monthlyData.map(d => d.investments);
+                const totalData = this.monthlyData.map(d => d.total);
+                
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = savingsData;
+                this.chart.data.datasets[1].data = investmentsData;
+                this.chart.data.datasets[2].data = totalData;
+                this.chart.update('none');
+            }
+            
+            endGame() {
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                
+                this.showFinalAnalysis();
+            }
+            
+            showFinalAnalysis() {
+                const finalSavings = Math.round(this.savingsBalance);
+                const finalInvestments = Math.round(this.investmentBalance);
+                const finalTotal = finalSavings + finalInvestments;
+                const totalContributed = this.monthlyIncome * this.totalMonths;
+                
+                document.getElementById('finalSavings').textContent = finalSavings.toLocaleString();
+                document.getElementById('finalInvestments').textContent = finalInvestments.toLocaleString();
+                document.getElementById('finalTotal').textContent = finalTotal.toLocaleString();
+                
+                const feedback = this.generateStrategyFeedback(finalSavings, finalInvestments, finalTotal, totalContributed);
+                document.getElementById('strategyFeedback').innerHTML = feedback;
+                
+                document.getElementById('finalAnalysis').classList.remove('hidden');
+            }
+            
+            generateStrategyFeedback(savings, investments, total, contributed) {
+                const gain = total - contributed;
+                const gainPercent = (gain / contributed * 100).toFixed(1);
+                const savingsPercent = (savings / total * 100).toFixed(1);
+                const investmentsPercent = (investments / total * 100).toFixed(1);
+                
+                let feedback = `
+                    <div class="mb-3">
+                        <p><strong>Total Contributed:</strong> $${contributed.toLocaleString()}</p>
+                        <p><strong>Total Gain:</strong> $${gain.toLocaleString()} (${gainPercent}%)</p>
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Final Allocation:</strong></p>
+                        <p>• Savings: ${savingsPercent}%</p>
+                        <p>• Investments: ${investmentsPercent}%</p>
+                    </div>
+                `;
+                
+                if (savingsPercent > 80) {
+                    feedback += '<p class="text-orange-600">⚠️ Very conservative approach. You missed significant growth opportunities.</p>';
+                } else if (savingsPercent < 10) {
+                    feedback += '<p class="text-red-600">⚠️ Very aggressive approach. You took high risks with limited safety net.</p>';
+                } else if (savingsPercent >= 20 && savingsPercent <= 40) {
+                    feedback += '<p class="text-green-600">✅ Well-balanced approach! Good mix of safety and growth.</p>';
+                } else {
+                    feedback += '<p class="text-blue-600">📊 Moderate approach with room for optimization.</p>';
+                }
+                
+                if (gainPercent > 50) {
+                    feedback += '<p class="text-green-600">🎉 Excellent returns! Your strategy paid off well.</p>';
+                } else if (gainPercent > 25) {
+                    feedback += '<p class="text-blue-600">👍 Solid returns! Good financial growth achieved.</p>';
+                } else {
+                    feedback += '<p class="text-yellow-600">📈 Modest gains. Consider more growth-oriented allocation.</p>';
+                }
+                
+                return feedback;
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SavingInvestingGame();
+        });
+        
+        // CSS for custom slider styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .slider::-webkit-slider-thumb {
+                appearance: none;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #3B82F6;
+                cursor: pointer;
+                border: 2px solid #FFFFFF;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            
+            .slider::-moz-range-thumb {
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #3B82F6;
+                cursor: pointer;
+                border: 2px solid #FFFFFF;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+
+
