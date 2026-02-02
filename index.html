@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving vs Investing Balance Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-balance-scale text-blue-600"></i>
+                Saving vs Investing Balance Game
+            </h1>
+            <p class="text-gray-600 text-lg">Learn the art of financial balance through interactive simulation</p>
+        </header>
+
+        <!-- Game Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Current Status -->
+                <div class="bg-gradient-to-r from-blue-100 to-blue-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-calendar-alt"></i> Current Status
+                    </h3>
+                    <div class="text-sm">
+                        <p>Month: <span id="currentMonth" class="font-bold">1</span> of 120</p>
+                        <p>Year: <span id="currentYear" class="font-bold">1</span> of 10</p>
+                        <p>Monthly Income: <span class="font-bold text-green-600">$3,000</span></p>
+                    </div>
+                </div>
+
+                <!-- Savings Account -->
+                <div class="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-800 mb-2">
+                        <i class="fas fa-piggy-bank"></i> Savings Account
+                    </h3>
+                    <div class="text-sm">
+                        <p>Balance: $<span id="savingsBalance" class="font-bold">0</span></p>
+                        <p>Interest Rate: <span class="font-bold">2% annually</span></p>
+                        <p class="text-green-600">✓ Stable & Safe</p>
+                    </div>
+                </div>
+
+                <!-- Investment Portfolio -->
+                <div class="bg-gradient-to-r from-purple-100 to-purple-200 p-4 rounded-lg">
+                    <h3 class="font-semibold text-purple-800 mb-2">
+                        <i class="fas fa-chart-line"></i> Investment Portfolio
+                    </h3>
+                    <div class="text-sm">
+                        <p>Balance: $<span id="investmentBalance" class="font-bold">0</span></p>
+                        <p>Avg Return: <span class="font-bold">7% annually</span></p>
+                        <p class="text-purple-600">⚡ Volatile & Growth</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allocation Controls -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <h3 class="font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-sliders-h"></i> Monthly Allocation ($3,000)
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Savings: $<span id="savingsAmount">1500</span> (<span id="savingsPercent">50</span>%)
+                        </label>
+                        <input type="range" id="savingsSlider" min="0" max="100" value="50" 
+                               class="w-full h-3 bg-green-200 rounded-lg appearance-none cursor-pointer slider">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Investment: $<span id="investmentAmount">1500</span> (<span id="investmentPercent">50</span>%)
+                        </label>
+                        <input type="range" id="investmentSlider" min="0" max="100" value="50" 
+                               class="w-full h-3 bg-purple-200 rounded-lg appearance-none cursor-pointer slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-play"></i> Start Game
+                </button>
+                <button id="pauseBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors" disabled>
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button id="resetBtn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button id="speedBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    Speed: <span id="speedText">1x</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-area"></i> Portfolio Growth Over Time
+            </h3>
+            <div class="relative" style="height: 400px;">
+                <canvas id="portfolioChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Events Log -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-history"></i> Recent Events
+            </h3>
+            <div id="eventsLog" class="space-y-2 max-h-40 overflow-y-auto">
+                <p class="text-gray-500 italic">Game events will appear here...</p>
+            </div>
+        </div>
+
+        <!-- Final Analysis (Hidden initially) -->
+        <div id="finalAnalysis" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-trophy"></i> Final Analysis
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800 mb-2">Total Savings</h4>
+                        <p class="text-2xl font-bold text-green-600">$<span id="finalSavings">0</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-800 mb-2">Total Investments</h4>
+                        <p class="text-2xl font-bold text-purple-600">$<span id="finalInvestments">0</span></p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Total Portfolio</h4>
+                        <p class="text-3xl font-bold text-blue-600">$<span id="finalTotal">0</span></p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-800 mb-3">Strategy Analysis</h4>
+                    <div id="strategyFeedback" class="text-sm space-y-2">
+                        <!-- Dynamic feedback will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+            <h3 id="eventTitle" class="text-xl font-semibold mb-4"></h3>
+            <p id="eventDescription" class="text-gray-700 mb-6"></p>
+            <div id="eventOptions" class="space-y-2">
+                <!-- Dynamic options will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SavingInvestingGame {
+            constructor() {
+                this.monthlyIncome = 3000;
+                this.currentMonth = 0;
+                this.totalMonths = 120; // 10 years
+                
+                this.savingsBalance = 0;
+                this.investmentBalance = 0;
+                this.savingsAllocation = 50; // percentage
+                this.investmentAllocation = 50; // percentage
+                
+                this.isRunning = false;
+                this.gameSpeed = 1000; // milliseconds per month
+                this.speedMultiplier = 1;
+                
+                this.monthlyData = [];
+                this.eventsHistory = [];
+                
+                this.chart = null;
+                
+                this.initializeEventHandlers();
+                this.initializeChart();
+                this.updateDisplay();
+            }
+            
+            initializeEventHandlers() {
+                // Slider controls
+                document.getElementById('savingsSlider').addEventListener('input', (e) => {
+                    this.savingsAllocation = parseInt(e.target.value);
+                    this.investmentAllocation = 100 - this.savingsAllocation;
+                    document.getElementById('investmentSlider').value = this.investmentAllocation;
+                    this.updateAllocationDisplay();
+                });
+                
+                document.getElementById('investmentSlider').addEventListener('input', (e) => {
+                    this.investmentAllocation = parseInt(e.target.value);
+                    this.savingsAllocation = 100 - this.investmentAllocation;
+                    document.getElementById('savingsSlider').value = this.savingsAllocation;
+                    this.updateAllocationDisplay();
+                });
+                
+                // Game controls
+                document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pauseGame());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+                document.getElementById('speedBtn').addEventListener('click', () => this.changeSpeed());
+            }
+            
+            initializeChart() {
+                const ctx = document.getElementById('portfolioChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Savings',
+                                data: [],
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Investments',
+                                data: [],
+                                borderColor: 'rgb(168, 85, 247)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Total Portfolio',
+                                data: [],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.1,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            updateAllocationDisplay() {
+                const savingsAmount = (this.monthlyIncome * this.savingsAllocation / 100);
+                const investmentAmount = (this.monthlyIncome * this.investmentAllocation / 100);
+                
+                document.getElementById('savingsAmount').textContent = savingsAmount.toFixed(0);
+                document.getElementById('savingsPercent').textContent = this.savingsAllocation;
+                document.getElementById('investmentAmount').textContent = investmentAmount.toFixed(0);
+                document.getElementById('investmentPercent').textContent = this.investmentAllocation;
+            }
+            
+            updateDisplay() {
+                document.getElementById('currentMonth').textContent = this.currentMonth;
+                document.getElementById('currentYear').textContent = Math.floor(this.currentMonth / 12) + 1;
+                document.getElementById('savingsBalance').textContent = this.savingsBalance.toLocaleString();
+                document.getElementById('investmentBalance').textContent = this.investmentBalance.toLocaleString();
+                
+                this.updateAllocationDisplay();
+            }
+            
+            startGame() {
+                this.isRunning = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                
+                this.gameLoop();
+            }
+            
+            pauseGame() {
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+            }
+            
+            resetGame() {
+                this.isRunning = false;
+                this.currentMonth = 0;
+                this.savingsBalance = 0;
+                this.investmentBalance = 0;
+                this.monthlyData = [];
+                this.eventsHistory = [];
+                
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('finalAnalysis').classList.add('hidden');
+                document.getElementById('eventsLog').innerHTML = '<p class="text-gray-500 italic">Game events will appear here...</p>';
+                
+                this.chart.data.labels = [];
+                this.chart.data.datasets.forEach(dataset => dataset.data = []);
+                this.chart.update();
+                
+                this.updateDisplay();
+            }
+            
+            changeSpeed() {
+                this.speedMultiplier = this.speedMultiplier === 1 ? 2 : this.speedMultiplier === 2 ? 4 : 1;
+                this.gameSpeed = 1000 / this.speedMultiplier;
+                document.getElementById('speedText').textContent = this.speedMultiplier + 'x';
+            }
+            
+            async gameLoop() {
+                while (this.isRunning && this.currentMonth < this.totalMonths) {
+                    await this.processMonth();
+                    await this.sleep(this.gameSpeed);
+                }
+                
+                if (this.currentMonth >= this.totalMonths) {
+                    this.endGame();
+                }
+            }
+            
+            async processMonth() {
+                this.currentMonth++;
+                
+                // Monthly contributions
+                const savingsContribution = this.monthlyIncome * this.savingsAllocation / 100;
+                const investmentContribution = this.monthlyIncome * this.investmentAllocation / 100;
+                
+                this.savingsBalance += savingsContribution;
+                this.investmentBalance += investmentContribution;
+                
+                // Apply monthly returns
+                this.savingsBalance *= (1 + 0.02/12); // 2% annual = ~0.167% monthly
+                
+                // Investment returns (volatile, average 7% annually)
+                const baseReturn = 0.07/12; // 7% annual = ~0.583% monthly
+                const volatility = (Math.random() - 0.5) * 0.4; // +/- 20% volatility
+                const monthlyReturn = baseReturn + volatility * baseReturn;
+                this.investmentBalance *= (1 + monthlyReturn);
+                
+                // Random events - 22% chance per month (approximately every 4-5 months)
+                if (Math.random() < 0.22) {
+                    await this.triggerRandomEvent();
+                }
+                
+                // Record data
+                this.monthlyData.push({
+                    month: this.currentMonth,
+                    savings: Math.round(this.savingsBalance),
+                    investments: Math.round(this.investmentBalance),
+                    total: Math.round(this.savingsBalance + this.investmentBalance)
+                });
+                
+                // Update chart
+                this.updateChart();
+                this.updateDisplay();
+            }
+            
+            async triggerRandomEvent() {
+                const events = [
+                    // EMERGENCIES (Negative Events) - 12 types
+                    {
+                        title: '🚗 Car Repair Emergency',
+                        description: 'Your car needs an urgent $2,000 repair. How do you handle this?',
+                        options: [
+                            { text: 'Use Emergency Savings', cost: 2000, source: 'savings' },
+                            { text: 'Sell Some Investments', cost: 2000, source: 'investments' },
+                            { text: 'Take a Loan (Extra $200 interest)', cost: 2200, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🏥 Medical Emergency',
+                        description: 'Unexpected medical bills amount to $3,000 after insurance.',
+                        options: [
+                            { text: 'Use Savings', cost: 3000, source: 'savings' },
+                            { text: 'Liquidate Investments', cost: 3000, source: 'investments' },
+                            { text: 'Payment Plan (+$500 fees)', cost: 3500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🏠 Home Repair Required',
+                        description: 'Your water heater broke! Replacement costs $1,500.',
+                        options: [
+                            { text: 'Pay from Savings', cost: 1500, source: 'savings' },
+                            { text: 'Use Credit Card (+$150 interest)', cost: 1650, source: 'both' },
+                            { text: 'Sell Investments', cost: 1500, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '🦷 Dental Emergency',
+                        description: 'Emergency dental work not covered by insurance: $2,500.',
+                        options: [
+                            { text: 'Pay with Savings', cost: 2500, source: 'savings' },
+                            { text: 'Financing Plan (+$300 fees)', cost: 2800, source: 'both' },
+                            { text: 'Cash Out Investments', cost: 2500, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '💻 Laptop Died',
+                        description: 'Your work laptop crashed and needs replacement: $1,200.',
+                        options: [
+                            { text: 'Buy with Savings', cost: 1200, source: 'savings' },
+                            { text: 'Buy on Credit (+$120 interest)', cost: 1320, source: 'both' },
+                            { text: 'Sell Investments', cost: 1200, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '🐕 Pet Emergency',
+                        description: 'Your pet needs emergency surgery: $3,500.',
+                        options: [
+                            { text: 'Use Emergency Fund', cost: 3500, source: 'savings' },
+                            { text: 'Liquidate Investments', cost: 3500, source: 'investments' },
+                            { text: 'Veterinary Payment Plan (+$400)', cost: 3900, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🔧 Car Transmission Failure',
+                        description: 'Major car repair needed: $4,000. You need your car for work.',
+                        options: [
+                            { text: 'Drain Savings', cost: 4000, source: 'savings' },
+                            { text: 'Auto Loan (+$500 interest)', cost: 4500, source: 'both' },
+                            { text: 'Sell Investments at Loss', cost: 4000, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '📱 Phone Broken',
+                        description: 'Your smartphone broke beyond repair. Replacement: $800.',
+                        options: [
+                            { text: 'Pay Cash from Savings', cost: 800, source: 'savings' },
+                            { text: 'Payment Plan (0% APR)', cost: 800, source: 'savings' },
+                            { text: 'Sell Some Stocks', cost: 800, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '❄️ HVAC System Failure',
+                        description: 'Air conditioning died in summer! Replacement: $5,000.',
+                        options: [
+                            { text: 'Emergency Savings', cost: 5000, source: 'savings' },
+                            { text: 'HVAC Financing (+$600)', cost: 5600, source: 'both' },
+                            { text: 'Liquidate Investments', cost: 5000, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '🚑 Ambulance Bill',
+                        description: 'Emergency ambulance ride not covered: $1,800.',
+                        options: [
+                            { text: 'Pay with Savings', cost: 1800, source: 'savings' },
+                            { text: 'Medical Payment Plan (+$200)', cost: 2000, source: 'both' },
+                            { text: 'Sell Investments', cost: 1800, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '🪟 Home Window Damage',
+                        description: 'Storm damaged windows. Insurance deductible: $2,000.',
+                        options: [
+                            { text: 'Use Savings', cost: 2000, source: 'savings' },
+                            { text: 'Contractor Financing (+$250)', cost: 2250, source: 'both' },
+                            { text: 'Cash Out Stocks', cost: 2000, source: 'investments' }
+                        ]
+                    },
+                    {
+                        title: '⚡ Electrical Emergency',
+                        description: 'Electrical panel needs urgent replacement: $3,200.',
+                        options: [
+                            { text: 'Emergency Fund', cost: 3200, source: 'savings' },
+                            { text: 'Home Equity Line (+$400)', cost: 3600, source: 'both' },
+                            { text: 'Liquidate Portfolio', cost: 3200, source: 'investments' }
+                        ]
+                    },
+                    
+                    // WINDFALLS (Positive Events) - 10 types
+                    {
+                        title: '🎉 Work Bonus!',
+                        description: 'Great news! You received a $5,000 performance bonus. What do you do?',
+                        options: [
+                            { text: 'Save it all', cost: -5000, source: 'savings' },
+                            { text: 'Invest it all', cost: -5000, source: 'investments' },
+                            { text: 'Split 50/50', cost: -5000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🎁 Tax Refund',
+                        description: 'You got a $2,500 tax refund! How will you use it?',
+                        options: [
+                            { text: 'Add to Emergency Fund', cost: -2500, source: 'savings' },
+                            { text: 'Invest in Market', cost: -2500, source: 'investments' },
+                            { text: 'Split Between Both', cost: -2500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '💰 Inheritance',
+                        description: 'A relative left you $10,000. What\'s your plan?',
+                        options: [
+                            { text: 'Save for Security', cost: -10000, source: 'savings' },
+                            { text: 'Invest for Growth', cost: -10000, source: 'investments' },
+                            { text: 'Balanced Approach', cost: -10000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🏆 Work Promotion',
+                        description: 'Promoted! One-time signing bonus of $7,500!',
+                        options: [
+                            { text: 'Build Emergency Fund', cost: -7500, source: 'savings' },
+                            { text: 'Invest for Future', cost: -7500, source: 'investments' },
+                            { text: 'Diversify 60/40', cost: -7500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🎰 Lottery Win',
+                        description: 'Small lottery win: $3,000! Lucky you!',
+                        options: [
+                            { text: 'Be Conservative - Save', cost: -3000, source: 'savings' },
+                            { text: 'Be Aggressive - Invest', cost: -3000, source: 'investments' },
+                            { text: 'Split Evenly', cost: -3000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '💵 Freelance Project',
+                        description: 'Side project paid off! Extra $4,000 earned.',
+                        options: [
+                            { text: 'Boost Savings', cost: -4000, source: 'savings' },
+                            { text: 'Invest for Compounding', cost: -4000, source: 'investments' },
+                            { text: 'Half and Half', cost: -4000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '💳 Credit Card Rewards',
+                        description: 'Cashed out $1,500 in credit card rewards points!',
+                        options: [
+                            { text: 'Save It', cost: -1500, source: 'savings' },
+                            { text: 'Invest It', cost: -1500, source: 'investments' },
+                            { text: 'Split It', cost: -1500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🎓 Tuition Reimbursement',
+                        description: 'Company reimbursed $6,000 for completed course!',
+                        options: [
+                            { text: 'Add to Emergency Fund', cost: -6000, source: 'savings' },
+                            { text: 'Invest in Growth', cost: -6000, source: 'investments' },
+                            { text: 'Balance Both', cost: -6000, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '🏅 Contest Winner',
+                        description: 'Won a competition! Prize money: $4,500.',
+                        options: [
+                            { text: 'Save for Rainy Day', cost: -4500, source: 'savings' },
+                            { text: 'Invest for Future', cost: -4500, source: 'investments' },
+                            { text: '50/50 Split', cost: -4500, source: 'both' }
+                        ]
+                    },
+                    {
+                        title: '💼 Consulting Gig',
+                        description: 'One-time consulting paid $8,000! What\'s your move?',
+                        options: [
+                            { text: 'Build Cash Reserve', cost: -8000, source: 'savings' },
+                            { text: 'Aggressive Investment', cost: -8000, source: 'investments' },
+                            { text: 'Diversified Approach', cost: -8000, source: 'both' }
+                        ]
+                    },
+                    
+                    // INVESTMENT OPPORTUNITIES (Risky Choices) - 7 types
+                    {
+                        title: '📈 Investment Opportunity',
+                        description: 'A friend offers you a "guaranteed" 15% return investment for $4,000.',
+                        options: [
+                            { text: 'Invest (50% chance of loss)', cost: 4000, source: 'risky' },
+                            { text: 'Decline and stick to plan', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🚀 Startup Investment',
+                        description: 'Friend\'s startup seeks $5,000. High risk, potential 3x return or total loss.',
+                        options: [
+                            { text: 'Take the Risk', cost: 5000, source: 'risky_big' },
+                            { text: 'Pass on Opportunity', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '💎 Cryptocurrency Hype',
+                        description: 'Everyone\'s talking about crypto. Invest $3,000?',
+                        options: [
+                            { text: 'FOMO - Invest Now', cost: 3000, source: 'crypto' },
+                            { text: 'Stay Disciplined', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🏘️ Real Estate Opportunity',
+                        description: 'REIT offering requires $6,000 minimum. 8-12% annual returns expected.',
+                        options: [
+                            { text: 'Invest from Savings', cost: 6000, source: 'savings' },
+                            { text: 'Liquidate Stocks', cost: 6000, source: 'investments' },
+                            { text: 'Skip This Deal', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🌾 Commodities Trading',
+                        description: 'Gold prices rising. Invest $3,500 in precious metals?',
+                        options: [
+                            { text: 'Buy Gold (From Savings)', cost: 3500, source: 'savings' },
+                            { text: 'Shift Investments to Gold', cost: 3500, source: 'investments' },
+                            { text: 'Ignore the Hype', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎯 IPO Opportunity',
+                        description: 'Hot new IPO! $4,500 minimum investment. Could 2x or crash.',
+                        options: [
+                            { text: 'Take the Risk', cost: 4500, source: 'risky' },
+                            { text: 'Wait and See', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🏦 High-Yield Bond Offer',
+                        description: 'Corporate bonds offering 12% yield. $5,000 minimum. Some default risk.',
+                        options: [
+                            { text: 'Invest from Savings', cost: 5000, source: 'savings' },
+                            { text: 'Rebalance to Bonds', cost: 5000, source: 'investments' },
+                            { text: 'Too Risky - Pass', cost: 0, source: 'none' }
+                        ]
+                    },
+                    
+                    // LIFESTYLE CHOICES - 6 types
+                    {
+                        title: '✈️ Dream Vacation Opportunity',
+                        description: 'Once-in-a-lifetime trip deal: $4,500. Your friends are going!',
+                        options: [
+                            { text: 'YOLO - Use Savings', cost: 4500, source: 'savings' },
+                            { text: 'Sell Investments', cost: 4500, source: 'investments' },
+                            { text: 'Skip It - Stay Disciplined', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '💍 Wedding Invitation',
+                        description: 'Best friend\'s destination wedding: $2,500 total cost.',
+                        options: [
+                            { text: 'Use Savings', cost: 2500, source: 'savings' },
+                            { text: 'Cash Out Investments', cost: 2500, source: 'investments' },
+                            { text: 'Attend Virtually (Free)', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎓 Professional Development',
+                        description: 'Career-boosting certification course: $3,500. Could increase salary.',
+                        options: [
+                            { text: 'Invest in Yourself (Savings)', cost: 3500, source: 'savings' },
+                            { text: 'Liquidate Stocks', cost: 3500, source: 'investments' },
+                            { text: 'Self-Study Instead', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎮 New Gaming Console',
+                        description: 'New console + games bundle: $800. You\'ve been wanting this.',
+                        options: [
+                            { text: 'Treat Yourself (Savings)', cost: 800, source: 'savings' },
+                            { text: 'Wait and Save Up', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎸 Hobby Equipment',
+                        description: 'That guitar/camera/bike you\'ve wanted: $2,200.',
+                        options: [
+                            { text: 'Buy with Savings', cost: 2200, source: 'savings' },
+                            { text: 'Sell Investments', cost: 2200, source: 'investments' },
+                            { text: 'Resist Temptation', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🏋️ Gym Membership Deal',
+                        description: '3-year premium gym membership: $3,600 upfront (save $1,400).',
+                        options: [
+                            { text: 'Great Deal - Use Savings', cost: 3600, source: 'savings' },
+                            { text: 'Monthly Payment Instead', cost: 0, source: 'none' }
+                        ]
+                    },
+                    
+                    // FAMILY OBLIGATIONS - 5 types
+                    {
+                        title: '👨‍👩‍👧 Family Emergency Loan',
+                        description: 'Family member needs $3,000 loan. They promise to repay in 6 months.',
+                        options: [
+                            { text: 'Lend from Savings', cost: 3000, source: 'savings' },
+                            { text: 'Lend from Investments', cost: 3000, source: 'investments' },
+                            { text: 'Politely Decline', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎂 Milestone Birthday Party',
+                        description: 'Throwing a big party for family member: $2,000.',
+                        options: [
+                            { text: 'Use Savings', cost: 2000, source: 'savings' },
+                            { text: 'Modest Party Instead', cost: 500, source: 'savings' },
+                            { text: 'Simple Dinner at Home', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🎄 Family Reunion',
+                        description: 'Large family reunion. Travel and hotel: $2,800.',
+                        options: [
+                            { text: 'Use Savings', cost: 2800, source: 'savings' },
+                            { text: 'Liquidate Some Stocks', cost: 2800, source: 'investments' },
+                            { text: 'Video Call Instead', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '👶 New Baby Gift',
+                        description: 'Close friend having baby. Help with expenses: $1,500.',
+                        options: [
+                            { text: 'Be Generous (Savings)', cost: 1500, source: 'savings' },
+                            { text: 'Modest Gift Instead', cost: 300, source: 'savings' },
+                            { text: 'Handmade Gift', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🏫 Niece/Nephew College Fund',
+                        description: 'Asked to contribute $4,000 to relative\'s college fund.',
+                        options: [
+                            { text: 'Contribute from Savings', cost: 4000, source: 'savings' },
+                            { text: 'Smaller Amount', cost: 1000, source: 'savings' },
+                            { text: 'Can\'t Help This Time', cost: 0, source: 'none' }
+                        ]
+                    },
+                    
+                    // MARKET EVENTS - 5 types
+                    {
+                        title: '📉 Market Crash!',
+                        description: 'Market dropped 20%! Your investments lost value. Buy the dip with $3,000?',
+                        options: [
+                            { text: 'Buy the Dip (Savings)', cost: 3000, source: 'savings' },
+                            { text: 'Wait It Out', cost: 0, source: 'none' },
+                            { text: 'Panic Sell', cost: 0, source: 'panic_sell' }
+                        ]
+                    },
+                    {
+                        title: '📊 Bull Market Rally',
+                        description: 'Market is soaring! Add $4,000 more to ride the wave?',
+                        options: [
+                            { text: 'Jump In with Savings', cost: 4000, source: 'savings' },
+                            { text: 'Stay Disciplined', cost: 0, source: 'none' },
+                            { text: 'Take Some Profits', cost: -2000, source: 'investments_to_savings' }
+                        ]
+                    },
+                    {
+                        title: '💹 Market Volatility',
+                        description: 'Extreme market swings! Rebalance portfolio by moving $2,500?',
+                        options: [
+                            { text: 'Stocks to Savings (Reduce Risk)', cost: 0, source: 'invest_to_save' },
+                            { text: 'Savings to Stocks (Buy Low)', cost: 2500, source: 'savings' },
+                            { text: 'Hold Current Position', cost: 0, source: 'none' }
+                        ]
+                    },
+                    {
+                        title: '🌍 Economic Recession Fear',
+                        description: 'Recession warnings everywhere. Move $5,000 to safety?',
+                        options: [
+                            { text: 'Move to Savings', cost: 0, source: 'invest_to_save_big' },
+                            { text: 'Stay Invested (Time in Market)', cost: 0, source: 'none' },
+                            { text: 'Buy More Stocks (Discount!)', cost: 3000, source: 'savings' }
+                        ]
+                    },
+                    {
+                        title: '💰 Dividend Payout',
+                        description: 'Your investments paid $1,200 in dividends. Reinvest or take cash?',
+                        options: [
+                            { text: 'Reinvest in Market', cost: -1200, source: 'investments' },
+                            { text: 'Move to Savings', cost: -1200, source: 'savings' },
+                            { text: 'Split 50/50', cost: -1200, source: 'both' }
+                        ]
+                    }
+                ];
+                
+                const event = events[Math.floor(Math.random() * events.length)];
+                return this.showEventModal(event);
+            }
+            
+            showEventModal(event) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('eventModal');
+                    const title = document.getElementById('eventTitle');
+                    const description = document.getElementById('eventDescription');
+                    const options = document.getElementById('eventOptions');
+                    
+                    title.textContent = event.title;
+                    description.textContent = event.description;
+                    options.innerHTML = '';
+                    
+                    event.options.forEach((option, index) => {
+                        const button = document.createElement('button');
+                        button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors';
+                        button.textContent = option.text;
+                        button.onclick = () => {
+                            this.handleEventChoice(option);
+                            modal.classList.add('hidden');
+                            this.addEventLog(event.title, option.text);
+                            resolve();
+                        };
+                        options.appendChild(button);
+                    });
+                    
+                    modal.classList.remove('hidden');
+                });
+            }
+            
+            handleEventChoice(option) {
+                if (option.cost > 0) {
+                    switch (option.source) {
+                        case 'savings':
+                            this.savingsBalance = Math.max(0, this.savingsBalance - option.cost);
+                            break;
+                        case 'investments':
+                            this.investmentBalance = Math.max(0, this.investmentBalance - option.cost);
+                            break;
+                        case 'both':
+                            const totalBalance = this.savingsBalance + this.investmentBalance;
+                            if (totalBalance >= option.cost) {
+                                const savingsRatio = this.savingsBalance / totalBalance;
+                                this.savingsBalance -= option.cost * savingsRatio;
+                                this.investmentBalance -= option.cost * (1 - savingsRatio);
+                            }
+                            break;
+                        case 'risky':
+                            if (Math.random() > 0.5) {
+                                this.investmentBalance += option.cost * 0.15; // 15% gain
+                            } else {
+                                this.investmentBalance = Math.max(0, this.investmentBalance - option.cost); // Total loss
+                            }
+                            break;
+                        case 'risky_big':
+                            // Startup investment: 30% chance 3x return, 70% chance total loss
+                            if (Math.random() > 0.7) {
+                                this.investmentBalance += option.cost * 2; // 3x return (2x profit)
+                            } else {
+                                this.investmentBalance = Math.max(0, this.investmentBalance - option.cost);
+                            }
+                            break;
+                        case 'crypto':
+                            // Crypto: Very volatile - 40% chance 50% gain, 60% chance 30% loss
+                            if (Math.random() > 0.6) {
+                                this.investmentBalance += option.cost * 0.5; // 50% gain
+                            } else {
+                                this.investmentBalance = Math.max(0, this.investmentBalance - option.cost * 0.3); // 30% loss
+                            }
+                            break;
+                        case 'none':
+                            // Do nothing
+                            break;
+                    }
+                } else if (option.cost < 0) {
+                    const bonus = Math.abs(option.cost);
+                    switch (option.source) {
+                        case 'savings':
+                            this.savingsBalance += bonus;
+                            break;
+                        case 'investments':
+                            this.investmentBalance += bonus;
+                            break;
+                        case 'both':
+                            this.savingsBalance += bonus / 2;
+                            this.investmentBalance += bonus / 2;
+                            break;
+                    }
+                } else {
+                    // Cost is 0 - handle special cases
+                    switch (option.source) {
+                        case 'panic_sell':
+                            // Panic sell: Lose 15% of investments, move rest to savings
+                            const loss = this.investmentBalance * 0.15;
+                            this.investmentBalance -= loss;
+                            this.savingsBalance += this.investmentBalance * 0.85;
+                            this.investmentBalance = this.investmentBalance * 0.15;
+                            break;
+                        case 'investments_to_savings':
+                            // Take profits: Move $2000 from investments to savings
+                            if (this.investmentBalance >= 2000) {
+                                this.investmentBalance -= 2000;
+                                this.savingsBalance += 2000;
+                            }
+                            break;
+                        case 'invest_to_save':
+                            // Rebalance: Move $2500 from investments to savings
+                            const moveAmount = Math.min(2500, this.investmentBalance);
+                            this.investmentBalance -= moveAmount;
+                            this.savingsBalance += moveAmount;
+                            break;
+                        case 'invest_to_save_big':
+                            // Move $5000 from investments to savings (recession fear)
+                            const moveAmountBig = Math.min(5000, this.investmentBalance);
+                            this.investmentBalance -= moveAmountBig;
+                            this.savingsBalance += moveAmountBig;
+                            break;
+                        case 'none':
+                            // Do nothing
+                            break;
+                    }
+                }
+            }
+            
+            addEventLog(eventTitle, choice) {
+                const log = document.getElementById('eventsLog');
+                const eventEntry = document.createElement('div');
+                eventEntry.className = 'bg-gray-100 p-2 rounded text-sm';
+                eventEntry.innerHTML = `
+                    <strong>Month ${this.currentMonth}:</strong> ${eventTitle}<br>
+                    <span class="text-gray-600">Choice: ${choice}</span>
+                `;
+                
+                if (log.children.length === 1 && log.children[0].classList.contains('italic')) {
+                    log.innerHTML = '';
+                }
+                
+                log.insertBefore(eventEntry, log.firstChild);
+                
+                // Keep only last 5 events
+                while (log.children.length > 5) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+            
+            updateChart() {
+                const labels = this.monthlyData.map(d => `Month ${d.month}`);
+                const savingsData = this.monthlyData.map(d => d.savings);
+                const investmentsData = this.monthlyData.map(d => d.investments);
+                const totalData = this.monthlyData.map(d => d.total);
+                
+                this.chart.data.labels = labels;
+                this.chart.data.datasets[0].data = savingsData;
+                this.chart.data.datasets[1].data = investmentsData;
+                this.chart.data.datasets[2].data = totalData;
+                this.chart.update('none');
+            }
+            
+            endGame() {
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                
+                this.showFinalAnalysis();
+            }
+            
+            showFinalAnalysis() {
+                const finalSavings = Math.round(this.savingsBalance);
+                const finalInvestments = Math.round(this.investmentBalance);
+                const finalTotal = finalSavings + finalInvestments;
+                const totalContributed = this.monthlyIncome * this.totalMonths;
+                
+                document.getElementById('finalSavings').textContent = finalSavings.toLocaleString();
+                document.getElementById('finalInvestments').textContent = finalInvestments.toLocaleString();
+                document.getElementById('finalTotal').textContent = finalTotal.toLocaleString();
+                
+                const feedback = this.generateStrategyFeedback(finalSavings, finalInvestments, finalTotal, totalContributed);
+                document.getElementById('strategyFeedback').innerHTML = feedback;
+                
+                document.getElementById('finalAnalysis').classList.remove('hidden');
+            }
+            
+            generateStrategyFeedback(savings, investments, total, contributed) {
+                const gain = total - contributed;
+                const gainPercent = (gain / contributed * 100).toFixed(1);
+                const savingsPercent = (savings / total * 100).toFixed(1);
+                const investmentsPercent = (investments / total * 100).toFixed(1);
+                
+                let feedback = `
+                    <div class="mb-3">
+                        <p><strong>Total Contributed:</strong> $${contributed.toLocaleString()}</p>
+                        <p><strong>Total Gain:</strong> $${gain.toLocaleString()} (${gainPercent}%)</p>
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Final Allocation:</strong></p>
+                        <p>• Savings: ${savingsPercent}%</p>
+                        <p>• Investments: ${investmentsPercent}%</p>
+                    </div>
+                `;
+                
+                if (savingsPercent > 80) {
+                    feedback += '<p class="text-orange-600">⚠️ Very conservative approach. You missed significant growth opportunities.</p>';
+                } else if (savingsPercent < 10) {
+                    feedback += '<p class="text-red-600">⚠️ Very aggressive approach. You took high risks with limited safety net.</p>';
+                } else if (savingsPercent >= 20 && savingsPercent <= 40) {
+                    feedback += '<p class="text-green-600">✅ Well-balanced approach! Good mix of safety and growth.</p>';
+                } else {
+                    feedback += '<p class="text-blue-600">📊 Moderate approach with room for optimization.</p>';
+                }
+                
+                if (gainPercent > 50) {
+                    feedback += '<p class="text-green-600">🎉 Excellent returns! Your strategy paid off well.</p>';
+                } else if (gainPercent > 25) {
+                    feedback += '<p class="text-blue-600">👍 Solid returns! Good financial growth achieved.</p>';
+                } else {
+                    feedback += '<p class="text-yellow-600">📈 Modest gains. Consider more growth-oriented allocation.</p>';
+                }
+                
+                return feedback;
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SavingInvestingGame();
+        });
+        
+        // CSS for custom slider styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .slider::-webkit-slider-thumb {
+                appearance: none;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #3B82F6;
+                cursor: pointer;
+                border: 2px solid #FFFFFF;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            
+            .slider::-moz-range-thumb {
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: #3B82F6;
+                cursor: pointer;
+                border: 2px solid #FFFFFF;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
